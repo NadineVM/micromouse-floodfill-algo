@@ -355,7 +355,7 @@ void floodFill(int x, int y, int xprev, int yprev) {
         int yrun = stack.top(); stack.pop();
         int xrun = stack.top(); stack.pop();
 
-        if (isConsistent(xrun, yrun)) {
+        if (isConsistent(xrun, yrun) || flood[yrun][xrun] == 0) {
             continue;
         } else {
             makeConsistent(xrun, yrun);
@@ -567,17 +567,6 @@ int main(int argc, char* argv[]) {
                 /* log("wall set"); */
         }}
 
-        //delete when issue is fixed
-        if (w_front){
-            log("wall front");
-        }
-        if (w_left){
-            log("wall left");
-        }
-        if (w_right){
-            log("wall right");
-        }
-
 
         if (flood[y][x]!=0){
             floodFill(x,y,xprev,yprev);}
@@ -607,6 +596,7 @@ int main(int argc, char* argv[]) {
             API::moveForward();
         }
         updateCoordinates();
+        log(to_string(x)+","+to_string(y));
 
         
 
