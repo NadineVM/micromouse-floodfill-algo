@@ -13,6 +13,13 @@ using namespace std;
     std::cerr << text << std::endl;
 } */
 
+//CHANGEABLE PROPERTIES
+int maze_width=API::mazeWidth();
+int maze_height=API::mazeHeight();
+char start_point='L'; //start point location, 'L' for bottom left, 'R' for bottom right
+int orient=0;
+//CHANGEABLE PROPERTIES
+
 void log(const string& text) {
     cerr << text << endl;
 }
@@ -25,11 +32,18 @@ void log(char dir) {
     cerr << dir << endl;
 }
 
-int x = 0;
+int x;
+int y;
+int xprev;
+int yprev;
+int x_start;
+int y_start;
+
+/* int x = 0;
 int y = 0;
 int xprev=0;
 int yprev=0;
-int orient = 0;
+int orient = 0; */
 
 int cells_num_visited[16][16] = {
     {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
@@ -234,6 +248,7 @@ tuple<int, int, int, int, int, int, int, int> getSurrounds(int x, int y) {
 }
 
 bool isConsistent(int x, int y) {
+    //flood=flood
     //log("Checking consistency..");
     // Returns true if the value of the current square is one greater than the minimum value in an accessible neighbor
     int x0;
@@ -274,6 +289,10 @@ bool isConsistent(int x, int y) {
     }
 
     return (minCount > 0);
+}
+
+void testing(int flood[16][16]) {
+    log(flood[3][3]);
 }
 
 void makeConsistent(int x, int y) {
@@ -495,110 +514,218 @@ int nextCellNumVisited(int x, int y, int orient){
     return cells_num_visited[y][x];
 }
 
+void put_walls(int orient,bool w_left,bool w_right,bool w_front){
+    if (orient==0){
+            if(w_front){
+                API::setWall(x, y, 'n');
+                /* log("wall set"); */
+            }
+            if(w_left){
+                API::setWall(x, y, 'w');
+                /* log("wall set"); */
+            }
+            if(w_right){
+                API::setWall(x, y, 'e');
+                /* log("wall set"); */
+    }}
+
+    else if (orient==1){
+        if(w_front){
+            API::setWall(x, y, 'e');
+            /* log("wall set"); */
+        }
+        if(w_left){
+            API::setWall(x, y, 'n');
+            /* log("wall set"); */
+        }
+        if(w_right){
+            API::setWall(x, y, 's');
+            /* log("wall set"); */
+    }}
+
+    else if (orient==2){
+        if(w_front){
+            API::setWall(x, y, 's');
+            /* log("wall set"); */
+        }
+        if(w_left){
+            API::setWall(x, y, 'e');
+            /* log("wall set"); */
+        }
+        if(w_right){
+            API::setWall(x, y, 'w');
+            /* log("wall set"); */
+    }}
+
+    else if (orient==3){
+        if(w_front){
+            API::setWall(x, y, 'w');
+            /* log("wall set"); */
+        }
+        if(w_left){
+            API::setWall(x, y, 's');
+            /* log("wall set"); */
+        }
+        if(w_right){
+            API::setWall(x, y, 'n');
+            /* log("wall set"); */
+    }}
+}
+
 int main(int argc, char* argv[]) {
+    
     log("Running...");
     showFlood();
     API::setColor(0, 0, 'G');
     API::setText(0, 0, "starting");
+    if (start_point=='L'){
+        x_start=0;
+        y_start=0;
+        x = 0;
+        y = 0;
+        xprev=0;
+        yprev=0;
+        int flood_to_start[16][16] = {
+            {15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30},
+            {14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29},
+            {13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28},
+            {12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27},
+            {11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26},
+            {10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25},
+            {9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24},
+            {8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23},
+            {7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22},
+            {6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21},
+            {5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20},
+            {4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19},
+            {3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18},
+            {2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17},
+            {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16},
+            {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15},
+        };
+        
+    }
+    else if (start_point=='R'){
+        x_start=maze_width-1;
+        y_start=0;
+        x = maze_width-1;
+        y = 0;
+        xprev=maze_width-1;
+        yprev=0;
+        int flood_to_start[16][16] = {
+            {30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15},
+            {29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14},
+            {28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13},
+            {27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12},
+            {26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11},
+            {25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10},
+            {24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9},
+            {23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8},
+            {22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7},
+            {21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6},
+            {20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5},
+            {19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4},
+            {18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3},
+            {17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2},
+            {16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1},
+            {15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0},
+        };
+    }
     while (true) {
-        int w_left = API::wallLeft();
-        int w_right = API::wallRight();
-        int w_front = API::wallFront();
-        
-        //update walls > move to adjacent cell with flood -1 (if can, if cannot, update flood) > update coordinates and orient
-        
+        while (flood[y][x]!=0){
+            int w_left = API::wallLeft();
+            int w_right = API::wallRight();
+            int w_front = API::wallFront();
+            
+            //update walls > move to adjacent cell with flood -1 (if can, if cannot, update flood) > update coordinates and orient
+            
 
-        updateWalls(x, y, orient, w_left, w_right, w_front);
+            updateWalls(x, y, orient, w_left, w_right, w_front);
 
-        //put walls (for debug purposes)
-        if (orient==0){
-            if(w_front){
-                API::setWall(x, y, 'n');
-                /* log("wall set"); */
-            }
-            if(w_left){
-                API::setWall(x, y, 'w');
-                /* log("wall set"); */
-            }
-            if(w_right){
-                API::setWall(x, y, 'e');
-                /* log("wall set"); */
-        }}
+            //put walls (for debug purposes)
+            put_walls(orient,w_left,w_right,w_front);
 
-        else if (orient==1){
-            if(w_front){
-                API::setWall(x, y, 'e');
-                /* log("wall set"); */
+            /* if (flood[y][x]!=0){
+                floodFill(x,y,xprev,yprev);} */
+            floodFill(x,y,xprev,yprev);
+            
+            showFlood();
+            char direction=toMove(x,y,orient,xprev,yprev);
+            //log(direction);
+            xprev=x;
+            yprev=y;
+            if(direction == 'F'){
+                API::moveForward();
             }
-            if(w_left){
-                API::setWall(x, y, 'n');
-                /* log("wall set"); */
+            else if(direction == 'R'){
+                API::turnRight();
+                updateOrient('R');
+                API::moveForward();
             }
-            if(w_right){
-                API::setWall(x, y, 's');
-                /* log("wall set"); */
-        }}
+            else if(direction == 'L'){
+                API::turnLeft();
+                updateOrient('L');
+                API::moveForward();
+            }
+            else if(direction == 'B'){
+                API::turnRight();
+                updateOrient('R');
+                API::turnRight();
+                updateOrient('R');
+                API::moveForward();
+            }
+            updateCoordinates();
+            if (flood[y][x]==0){log("goal reached, returning to starting point");}
+            //log(to_string(x)+","+to_string(y));
 
-        else if (orient==2){
-            if(w_front){
-                API::setWall(x, y, 's');
-                /* log("wall set"); */
-            }
-            if(w_left){
-                API::setWall(x, y, 'e');
-                /* log("wall set"); */
-            }
-            if(w_right){
-                API::setWall(x, y, 'w');
-                /* log("wall set"); */
-        }}
-
-        else if (orient==3){
-            if(w_front){
-                API::setWall(x, y, 'w');
-                /* log("wall set"); */
-            }
-            if(w_left){
-                API::setWall(x, y, 's');
-                /* log("wall set"); */
-            }
-            if(w_right){
-                API::setWall(x, y, 'n');
-                /* log("wall set"); */
-        }}
-
-
-        if (flood[y][x]!=0){
-            floodFill(x,y,xprev,yprev);}
-        showFlood();
-        char direction=toMove(x,y,orient,xprev,yprev);
-        //log(direction);
-        xprev=x;
-        yprev=y;
-        if(direction == 'F'){
-            API::moveForward();
         }
-        else if(direction == 'R'){
-            API::turnRight();
-            updateOrient('R');
-            API::moveForward();
-        }
-        else if(direction == 'L'){
-            API::turnLeft();
-            updateOrient('L');
-            API::moveForward();
-        }
-        else if(direction == 'B'){
-            API::turnRight();
-            updateOrient('R');
-            API::turnRight();
-            updateOrient('R');
-            API::moveForward();
-        }
-        updateCoordinates();
-        log(to_string(x)+","+to_string(y));
+        while (x!=x_start && y!=y_start){
+            int w_left = API::wallLeft();
+            int w_right = API::wallRight();
+            int w_front = API::wallFront();
+            
+            //update walls > move to adjacent cell with flood -1 (if can, if cannot, update flood) > update coordinates and orient
+            
 
-        
+            updateWalls(x, y, orient, w_left, w_right, w_front);
+
+            //put walls (for debug purposes)
+            put_walls(orient,w_left,w_right,w_front);
+
+            /* if (flood[y][x]!=0){
+                floodFill(x,y,xprev,yprev);} */
+            floodFill(x,y,xprev,yprev);
+            
+            showFlood();
+            char direction=toMove(x,y,orient,xprev,yprev);
+            //log(direction);
+            xprev=x;
+            yprev=y;
+            if(direction == 'F'){
+                API::moveForward();
+            }
+            else if(direction == 'R'){
+                API::turnRight();
+                updateOrient('R');
+                API::moveForward();
+            }
+            else if(direction == 'L'){
+                API::turnLeft();
+                updateOrient('L');
+                API::moveForward();
+            }
+            else if(direction == 'B'){
+                API::turnRight();
+                updateOrient('R');
+                API::turnRight();
+                updateOrient('R');
+                API::moveForward();
+            }
+            updateCoordinates();
+            if (flood[y][x]==0){
+                log("goal reached, returning to starting point");}
+            //log(to_string(x)+","+to_string(y));
+        }
 
         //(if cannot) update flood > show flood > move > update coordinates > update walls
 
