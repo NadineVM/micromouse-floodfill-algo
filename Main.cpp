@@ -38,6 +38,7 @@ int xprev;
 int yprev;
 int x_start;
 int y_start;
+int flood_to_start[16][16];
 
 /* int x = 0;
 int y = 0;
@@ -103,7 +104,7 @@ int flood[16][16]={
         {14,13,12,11,10,9,8,7,7,8,9,10,11,12,13,14}
 };
 
-void showFlood() {
+void showFlood(int flood[16][16]) {
     for (int x = 0; x < 16; ++x) {
         for (int y = 0; y < 16; ++y) {
             API::setText(x, y, to_string(flood[y][x]));
@@ -247,7 +248,7 @@ tuple<int, int, int, int, int, int, int, int> getSurrounds(int x, int y) {
     return make_tuple(x0, y0, x1, y1, x2, y2, x3, y3);
 }
 
-bool isConsistent(int x, int y) {
+bool isConsistent(int x, int y,int flood[16][16]) {
     //flood=flood
     //log("Checking consistency..");
     // Returns true if the value of the current square is one greater than the minimum value in an accessible neighbor
@@ -291,11 +292,11 @@ bool isConsistent(int x, int y) {
     return (minCount > 0);
 }
 
-void testing(int flood[16][16]) {
+/* void testing(int flood[16][16]) {
     log(flood[3][3]);
-}
+} */
 
-void makeConsistent(int x, int y) {
+void makeConsistent(int x, int y, int flood[16][16]) {
     //log("Making consistent..");
     int x0;
     int y0;
@@ -333,9 +334,9 @@ void makeConsistent(int x, int y) {
     flood[y][x] = minVal + 1;
 }
 
-void floodFill(int x, int y, int xprev, int yprev) {
+void floodFill(int x, int y, int xprev, int yprev, int flood[16][16]) {
     //log("Flood fill running..");
-    if (!isConsistent(x, y)) {
+    if (!isConsistent(x, y,flood)&&flood[y][x] != 0) {
         flood[y][x] = flood[yprev][xprev] + 1;
     }
     
@@ -374,10 +375,10 @@ void floodFill(int x, int y, int xprev, int yprev) {
         int yrun = stack.top(); stack.pop();
         int xrun = stack.top(); stack.pop();
 
-        if (isConsistent(xrun, yrun) || flood[yrun][xrun] == 0) {
+        if (isConsistent(xrun, yrun, flood) || flood[yrun][xrun] == 0) {
             continue;
         } else {
-            makeConsistent(xrun, yrun);
+            makeConsistent(xrun, yrun, flood);
             stack.push(xrun);
             stack.push(yrun);
 
@@ -404,7 +405,7 @@ void floodFill(int x, int y, int xprev, int yprev) {
     //log("Flood fill complete.");
 }
 
-char toMove(int x, int y, int orient,int xprev, int yprev) {
+char toMove(int x, int y, int orient,int xprev, int yprev, int flood[16][16]) {
     int x0;
     int y0;
     int x1;
@@ -575,7 +576,7 @@ void put_walls(int orient,bool w_left,bool w_right,bool w_front){
 int main(int argc, char* argv[]) {
     
     log("Running...");
-    showFlood();
+    showFlood(flood);
     API::setColor(0, 0, 'G');
     API::setText(0, 0, "starting");
     if (start_point=='L'){
@@ -585,7 +586,19 @@ int main(int argc, char* argv[]) {
         y = 0;
         xprev=0;
         yprev=0;
-        int flood_to_start[16][16] = {
+        /* int flood_to_start_copy[16][16] = {
+            {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15},
+            {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16},
+            {2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17},
+            {3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18},
+            {4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19},
+            {5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20},
+            {6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21},
+            {7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22},
+            {8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23},
+            {9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24},
+            {10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25},
+
             {15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30},
             {14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29},
             {13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28},
@@ -602,7 +615,14 @@ int main(int argc, char* argv[]) {
             {2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17},
             {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16},
             {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15},
-        };
+        }; */
+        //initialize flood to start 
+        for (int y = 0; y < 16; y++) {
+            for (int x=0; x < 16; x++) {
+                flood_to_start[y][x] = x+y;
+            }
+        }
+
         
     }
     else if (start_point=='R'){
@@ -612,7 +632,7 @@ int main(int argc, char* argv[]) {
         y = 0;
         xprev=maze_width-1;
         yprev=0;
-        int flood_to_start[16][16] = {
+        /* int flood_to_start_copy[16][16] = {
             {30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15},
             {29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14},
             {28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13},
@@ -623,16 +643,22 @@ int main(int argc, char* argv[]) {
             {23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8},
             {22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7},
             {21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6},
-            {20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5},
-            {19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4},
-            {18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3},
-            {17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2},
-            {16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1},
-            {15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0},
-        };
+            {20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5}, 25
+            {19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4},23
+            {18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3}, 21
+            {17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2}, 19
+            {16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1}, 17
+            {15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0}, 15
+        }; */
+        for (int y = 0; y < 16; y++) {
+            for (int x=0; x < 16; x++) {
+                flood_to_start[y][x] = 15+2*y-x-y;
+            }
+        }
     }
     while (true) {
         while (flood[y][x]!=0){
+            log("Going to the goal");
             int w_left = API::wallLeft();
             int w_right = API::wallRight();
             int w_front = API::wallFront();
@@ -647,10 +673,10 @@ int main(int argc, char* argv[]) {
 
             /* if (flood[y][x]!=0){
                 floodFill(x,y,xprev,yprev);} */
-            floodFill(x,y,xprev,yprev);
+            floodFill(x,y,xprev,yprev,flood);
             
-            showFlood();
-            char direction=toMove(x,y,orient,xprev,yprev);
+            showFlood(flood);
+            char direction=toMove(x,y,orient,xprev,yprev,flood);
             //log(direction);
             xprev=x;
             yprev=y;
@@ -679,7 +705,9 @@ int main(int argc, char* argv[]) {
             //log(to_string(x)+","+to_string(y));
 
         }
-        while (x!=x_start && y!=y_start){
+        //PROBLEM: DECLARATION WRONG, FLOOD TO START IS SEEN AS 0 ARRAY
+        while (flood_to_start[y][x]!=0){
+            log("returning to starting point "+to_string(x_start)+","+to_string(y_start));
             int w_left = API::wallLeft();
             int w_right = API::wallRight();
             int w_front = API::wallFront();
@@ -694,10 +722,13 @@ int main(int argc, char* argv[]) {
 
             /* if (flood[y][x]!=0){
                 floodFill(x,y,xprev,yprev);} */
-            floodFill(x,y,xprev,yprev);
+            floodFill(x,y,xprev,yprev,flood_to_start);
+
+            //also update the main flood
+            floodFill(x,y,xprev,yprev,flood);
             
-            showFlood();
-            char direction=toMove(x,y,orient,xprev,yprev);
+            showFlood(flood_to_start);
+            char direction=toMove(x,y,orient,xprev,yprev,flood_to_start);
             //log(direction);
             xprev=x;
             yprev=y;
@@ -722,8 +753,8 @@ int main(int argc, char* argv[]) {
                 API::moveForward();
             }
             updateCoordinates();
-            if (flood[y][x]==0){
-                log("goal reached, returning to starting point");}
+            if (x==x_start && y==y_start){
+                log("starting point reached, going for next run");}
             //log(to_string(x)+","+to_string(y));
         }
 
